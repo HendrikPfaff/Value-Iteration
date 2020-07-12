@@ -42,12 +42,12 @@ class Environment:
     G_COST = -10  # Costs / Reward for arriving at the goal.
     TRANS_COST = 1  # General transition costs.
 
-    NUM_ACTIONS = 5
+    NUM_ACTIONS = 4
     UP = 0
     RIGHT = 1
     DOWN = 2
     LEFT = 3
-    STAY = 4
+    #STAY = 4
 
     def __init__(self, path):
         self.map = load_map()
@@ -74,7 +74,7 @@ class Environment:
                 self.P[current_state][self.RIGHT] = [(0.0, current_state, 0, True)]
                 self.P[current_state][self.DOWN] = [(0.0, current_state, 0, True)]
                 self.P[current_state][self.LEFT] = [(0.0, current_state, 0, True)]
-                self.P[current_state][self.STAY] = [(1.0, current_state, 0, True)]
+                #self.P[current_state][self.STAY] = [(1.0, current_state, 0, True)]
             else:
                 # Not in a terminal state.
                 up_state = current_state if y == 0 else current_state - self.maxX
@@ -98,14 +98,14 @@ class Environment:
                                                      left_state,
                                                      self.costs(current_state, self.LEFT, left_state),
                                                      self.is_terminal(left_state))]
-                self.P[current_state][self.STAY] = [(self.probability(current_state, self.STAY, current_state),
-                                                     current_state,
-                                                     self.costs(current_state, self.STAY, current_state),
-                                                     self.is_terminal(current_state))]
+                #self.P[current_state][self.STAY] = [(self.probability(current_state, self.STAY, current_state),
+                #                                     current_state,
+                #                                     self.costs(current_state, self.STAY, current_state),
+                #                                     self.is_terminal(current_state))]
 
             it.iternext()
 
-    # Translating the state iteratior into map-coordinates.
+    # Translating the state iterator into map-coordinates.
     def stateindex_to_coordinates(self, index):
         y = int(index / self.maxX)
         x = index % self.maxX
@@ -143,7 +143,7 @@ class Environment:
 
         if action == 4:
             prob = 0.0
-        if self.is_wall(next_state) or self.is_wall(current_state):
+        if self.is_wall(current_state):
             prob = 0.0
 
 
