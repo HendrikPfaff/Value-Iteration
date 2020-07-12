@@ -1,43 +1,42 @@
-import colorama
+import emoji
 import numpy as np
 
 
 def print_map(map):
-    print("")
+    print("Load Map:")
     for i in range(len(map)):
         for j in range(len(map[0])):
             if map[i][j] == 'X':
-                color = colorama.Fore.RED
+                out = emoji.emojize(':white_large_square:', use_aliases=True)
             elif map[i][j] == 'S':
-                color = colorama.Fore.BLUE
+                out = emoji.emojize(':blue_car:', use_aliases=True)
             elif map[i][j] == 'T':
-                color = colorama.Fore.GREEN
+                out = emoji.emojize(':fuelpump:', use_aliases=True)
             elif map[i][j] == 'G':
-                color = colorama.Fore.CYAN
+                out = emoji.emojize(':checkered_flag:', use_aliases=True)
             else:
-                color = colorama.Fore.RESET
+                out = emoji.emojize(':black_large_square:', use_aliases=True)
 
-            print(color + map[i][j] + ' ', end="")
-        print(colorama.Fore.RESET)
+            print(out + ' ', end="")
+        print()
 
 
 def load_map(path="./map"):
-    # ToDo: actually load the map from file.
-    result = [['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'],
-              ['X', 'S', '.', 'X', '.', '.', '.', '.', '.', 'X'],
-              ['X', '.', '.', '.', '.', '.', 'X', '.', '.', 'X'],
-              ['X', '.', '.', '.', 'T', '.', 'X', '.', 'G', 'X'],
-              ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X']]
-
-    #result = [['S', '.', 'X', '.', '.', '.', '.', '.'],
-    #          ['.', '.', '.', '.', '.', 'X', '.', '.'],
-    #          ['.', '.', '.', 'T', '.', 'X', '.', 'G']]
-
+    #result = [['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'],
+    #          ['X', 'S', '.', 'X', '.', '.', '.', '.', '.', 'X'],
+    #          ['X', '.', '.', '.', '.', '.', 'X', '.', '.', 'X'],
+    #          ['X', '.', '.', '.', 'T', '.', 'X', '.', 'G', 'X'],
+    #          ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X']]
+    result = []
+    with open(path) as file:
+        for line in file:
+            line = list(line.rstrip())
+            result.append(list(line))
     return result
 
 
 class Environment:
-    X_COST = 2  # Costs for touching the wall.
+    X_COST = 3  # Costs for touching the wall. Problem with values < 3.
     T_COST = -1  # Costs / Reward for driving through the gas station.
     G_COST = -10  # Costs / Reward for arriving at the goal.
     TRANS_COST = 1  # General transition costs.
@@ -47,7 +46,6 @@ class Environment:
     RIGHT = 1
     DOWN = 2
     LEFT = 3
-    #STAY = 4
 
     def __init__(self, path):
         self.map = load_map()
@@ -74,7 +72,6 @@ class Environment:
                 self.P[current_state][self.RIGHT] = [(0.0, current_state, 0, True)]
                 self.P[current_state][self.DOWN] = [(0.0, current_state, 0, True)]
                 self.P[current_state][self.LEFT] = [(0.0, current_state, 0, True)]
-                #self.P[current_state][self.STAY] = [(1.0, current_state, 0, True)]
             else:
                 # Not in a terminal state.
                 up_state = current_state if y == 0 else current_state - self.maxX
@@ -98,10 +95,6 @@ class Environment:
                                                      left_state,
                                                      self.costs(current_state, self.LEFT, left_state),
                                                      self.is_terminal(left_state))]
-                #self.P[current_state][self.STAY] = [(self.probability(current_state, self.STAY, current_state),
-                #                                     current_state,
-                #                                     self.costs(current_state, self.STAY, current_state),
-                #                                     self.is_terminal(current_state))]
 
             it.iternext()
 
@@ -123,6 +116,10 @@ class Environment:
         y, x = self.stateindex_to_coordinates(state)
         return self.map[y][x] == 'T'
 
+    def is_start(self, state):
+        y, x = self.stateindex_to_coordinates(state)
+        return self.map[y][x] == 'S'
+
     # Are the costs dependent on the action or the outcome?
     def costs(self, current_state, action, next_state):
         costs = self.TRANS_COST
@@ -141,10 +138,7 @@ class Environment:
     def probability(self, current_state, action, next_state):
         prob = 0.8
 
-        if action == 4:
-            prob = 0.0
         if self.is_wall(current_state):
             prob = 0.0
-
 
         return prob
