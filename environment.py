@@ -22,11 +22,6 @@ def print_map(map):
 
 
 def load_map(path="./map"):
-    #result = [['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X'],
-    #          ['X', 'S', '.', 'X', '.', '.', '.', '.', '.', 'X'],
-    #          ['X', '.', '.', '.', '.', '.', 'X', '.', '.', 'X'],
-    #          ['X', '.', '.', '.', 'T', '.', 'X', '.', 'G', 'X'],
-    #          ['X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X', 'X']]
     result = []
     with open(path) as file:
         for line in file:
@@ -36,7 +31,7 @@ def load_map(path="./map"):
 
 
 class Environment:
-    X_COST = 3  # Costs for touching the wall. Problem with values < 3.
+    X_COST = 2  # Costs for touching the wall. Problem with values < 3.
     T_COST = -1  # Costs / Reward for driving through the gas station.
     G_COST = -10  # Costs / Reward for arriving at the goal.
     TRANS_COST = 1  # General transition costs.
@@ -68,10 +63,10 @@ class Environment:
 
             if self.is_terminal(current_state):
                 # No way out of a terminal state. 100% chance of staying in it, without further costs.
-                self.P[current_state][self.UP] = [(0.0, current_state, 0, True)]
-                self.P[current_state][self.RIGHT] = [(0.0, current_state, 0, True)]
-                self.P[current_state][self.DOWN] = [(0.0, current_state, 0, True)]
-                self.P[current_state][self.LEFT] = [(0.0, current_state, 0, True)]
+                self.P[current_state][self.UP] = [(1.0, current_state, 0, True)]
+                self.P[current_state][self.RIGHT] = [(1.0, current_state, 0, True)]
+                self.P[current_state][self.DOWN] = [(1.0, current_state, 0, True)]
+                self.P[current_state][self.LEFT] = [(1.0, current_state, 0, True)]
             else:
                 # Not in a terminal state.
                 up_state = current_state if y == 0 else current_state - self.maxX
@@ -130,13 +125,15 @@ class Environment:
             costs = self.X_COST  # Wall collision.
         elif self.is_gas_station(next_state) and not self.is_gas_station(current_state):
             costs = self.T_COST  # Arriving at gas station. (Only going through)
-        elif self.is_terminal(next_state) and not self.is_terminal(current_state):
-            costs = self.G_COST  # Arriving at Terminal state.
 
         return costs
 
     def probability(self, current_state, action, next_state):
         prob = 0.8
+
+
+
+
 
         if self.is_wall(current_state):
             prob = 0.0

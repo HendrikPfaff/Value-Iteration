@@ -2,6 +2,7 @@
 import colorama
 import emoji
 import environment
+import csv
 import numpy as np
 
 
@@ -56,24 +57,39 @@ def printPolicy(policy, env):
         print()
 
 
-def value_iteration(env, epsilon=0.00001, discount_factor=1.0):
+def write_to_csv(list, name="statistics.csv"):
+    with open(name, 'w', newline="") as file:
+        writer = csv.writer(file)
+        writer.writerows(map(lambda x: [x], list))
+
+
+def value_iteration(env, epsilon=0.000001, discount_factor=1.0):
     def calculate_v_values(V, action, state):
         [(probability, next_state, cost, done)] = env.P[state][action]
         return probability * (cost + discount_factor * V[next_state])
 
-    V = np.zeros(env.num_states)
+    # Initialize states.
+    V_new = np.zeros(env.num_states)
+    V_new[38] = -10  # Terminal state.
     policy = np.zeros([env.num_states, env.NUM_ACTIONS])
     iteration = 0
+    delta = [0]*200
+
 
     while True:
-        delta = 0
+        V_old = V_new
         print("\nIteration:", iteration)
         print("\nGrid policy:")
         printPolicy(policy, env)
         print("\nGrid Value Function:")
-        printV(V, env)
+        printV(V_old, env)
+        print("\nDelta (Biggest Value function difference):", delta[iteration])
+        print("\n====================================================================================")
 
         iteration += 1
+        delta[iteration] = 0
+
+        V_new = np.zeros(env.num_states)
 
         # Iterate through all states.
         for state in range(env.num_states):
@@ -82,31 +98,36 @@ def value_iteration(env, epsilon=0.00001, discount_factor=1.0):
             # Iterate through all actions of state.
             for action in range(env.NUM_ACTIONS):
                 # Apply Bellman equation to calculate v.
-                action_values[action] = calculate_v_values(V, action, state)
+                action_values[action] = calculate_v_values(V_old, action, state)
 
             # Pick the best action in this state (minimal costs).
             best_action_value = min(action_values)
 
             # Get biggest difference between best action value and our old value function.
-            delta = max(delta, abs(best_action_value - V[state]))
+            delta[iteration] = max(delta[iteration], abs(best_action_value - V_old[state]))
 
             # Apply Bellman optimality principle.
-            V[state] = best_action_value
+            V_new[state] = best_action_value
 
             # Update the policy.
             best_action = np.argmin(action_values)
             policy[state] = np.eye(env.NUM_ACTIONS)[best_action]
 
-        print("\nDelta:", delta)
-        print("\n====================================================================================")
-
         # Check for convergence.
-        if delta < epsilon:
+        if delta[iteration] < epsilon:
             break
 
-    return policy, V
+    print("\nFinished! (" + str(iteration) + " Iterations)")
+    print("\nGrid policy:")
+    printPolicy(policy, env)
+    print("\nGrid Value Function:")
+    printV(V_old, env)
+    print("\nDelta (Biggest Value function difference):", delta[iteration])
+
+    return policy, V_old, delta
 
 
 if __name__ == "__main__":
     env = environment.Environment("./map")
-    policy, v = value_iteration(env)
+    policy, v, deltas = value_iteration(env)
+    #write_to_csv(deltas, 'deltas-19.csv')
