@@ -72,8 +72,6 @@ def value_iteration(env, epsilon=0.00001, discount_factor=1.0):
         printPolicy(policy, env)
         print("\nGrid Value Function:")
         printV(V, env)
-        print("\nDelta:", delta)
-        print("\n====================================================================================")
 
         iteration += 1
 
@@ -98,6 +96,9 @@ def value_iteration(env, epsilon=0.00001, discount_factor=1.0):
             # Update the policy.
             best_action = np.argmin(action_values)
             policy[state] = np.eye(env.NUM_ACTIONS)[best_action]
+
+        print("\nDelta:", delta)
+        print("\n====================================================================================")
 
         # Check for convergence.
         if delta < epsilon:
