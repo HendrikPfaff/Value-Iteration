@@ -32,7 +32,7 @@ def printV(V, env):
         print(colorama.Fore.RESET)
 
 
-def printPolicy(policy, env):
+def printPolicy(policy, env, iter=0):
     n = 0
     for i in range(env.maxY):
         for j in range(env.maxX):
@@ -41,16 +41,16 @@ def printPolicy(policy, env):
                 out = emoji.emojize(':white_large_square:', use_aliases=True)
             elif env.is_terminal(n):
                 out = emoji.emojize(':white_check_mark:', use_aliases=True)
-            elif arg == env.UP:
+            elif arg == env.UP and iter != 0:
                 out = emoji.emojize(':arrow_up_small:', use_aliases=True)
-            elif arg == env.RIGHT:
+            elif arg == env.RIGHT and iter != 0:
                 out = emoji.emojize(':fast_forward:', use_aliases=True)
-            elif arg == env.DOWN:
+            elif arg == env.DOWN and iter != 0:
                 out = emoji.emojize(':arrow_down_small:', use_aliases=True)
-            elif arg == env.LEFT:
+            elif arg == env.LEFT and iter != 0:
                 out = emoji.emojize(':rewind:', use_aliases=True)
             else:
-                out = arg
+                out = emoji.emojize(':new:', use_aliases=True)
 
             print(out, end=" ")
             n += 1
@@ -70,7 +70,7 @@ def value_iteration(env, epsilon=0.000001, discount_factor=1.0):
 
     # Initialize states.
     V_new = np.zeros(env.num_states)
-    V_new[38] = -10  # Terminal state.
+    #V_new[38] = -24  # Terminal state.
     policy = np.zeros([env.num_states, env.NUM_ACTIONS])
     iteration = 0
     delta = [0]*200
@@ -80,7 +80,7 @@ def value_iteration(env, epsilon=0.000001, discount_factor=1.0):
         V_old = V_new
         print("\nIteration:", iteration)
         print("\nGrid policy:")
-        printPolicy(policy, env)
+        printPolicy(policy, env, iteration)
         print("\nGrid Value Function:")
         printV(V_old, env)
         print("\nDelta (Biggest Value function difference):", delta[iteration])
@@ -119,7 +119,7 @@ def value_iteration(env, epsilon=0.000001, discount_factor=1.0):
 
     print("\nFinished! (" + str(iteration) + " Iterations)")
     print("\nGrid policy:")
-    printPolicy(policy, env)
+    printPolicy(policy, env, iteration)
     print("\nGrid Value Function:")
     printV(V_old, env)
     print("\nDelta (Biggest Value function difference):", delta[iteration])

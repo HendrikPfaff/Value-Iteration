@@ -121,19 +121,18 @@ class Environment:
 
         if self.is_terminal(current_state):
             costs = 0  # Absorbent Terminal state.
+        elif self.is_terminal(next_state):
+            costs = self.G_COST + 1
         elif self.is_wall(next_state):
             costs = self.X_COST  # Wall collision.
         elif self.is_gas_station(next_state) and not self.is_gas_station(current_state):
             costs = self.T_COST  # Arriving at gas station. (Only going through)
 
+
         return costs
 
     def probability(self, current_state, action, next_state):
         prob = 0.8
-
-
-
-
 
         if self.is_wall(current_state):
             prob = 0.0
