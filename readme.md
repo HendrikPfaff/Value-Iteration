@@ -8,7 +8,7 @@ How can we find the best route for the car using the reinforcement learning meth
 
 ## Introduction
 This Project aims to achieve three objectives:
-* Implementing the Value Iteration algorithm for a two dimensional gridworld in python.
+* Implementing the Value Iteration algorithm for a two dimensional gridworld (based on [Mohammad Ashrafs work](https://towardsdatascience.com/reinforcement-learning-demystified-solving-mdps-with-dynamic-programming-b52c8093c919)) in python.
 * Finding the optimal value function (_V*_) and policy (_pi*_).
 * Observe and visualize the learning process.
 
@@ -49,37 +49,42 @@ The implementation consists of three parts. The `main.py`, the `environment.py` 
 * The `environment.py` contains the `Environment`-class, that controls all environmental parameters and behaviors. In its constructor, the `map`-file is loaded and parsed into a usable gridworld. In the class constants, all relevant costs, probabilities and actions are defines.
 
 * In the `main.py`, the actual value iteration takes place. It is based on [Mohammad Elsersys Value Iteration code](https://gist.github.com/Neo-47/b8f6af451211d43ceaf950cfea1ded96) modified for our scenario. 
-    ```                                                                     
-    iteration += 1
-    delta[iteration] = 0
+    ```python
+    while true:
+      V_old = V_new
+      
+      ... 
+                                                                       
+      iteration += 1
+      delta[iteration] = 0
                        
-    V_new = np.zeros(env.num_states)
+      V_new = np.zeros(env.num_states)
   
-    # Iterate through all states.
-    for state in range(env.num_states):
-        action_values = np.zeros(env.NUM_ACTIONS)
+      # Iterate through all states.
+      for state in range(env.num_states):
+          action_values = np.zeros(env.NUM_ACTIONS)
   
-        # Iterate through all actions of state.     
-        for action in range(env.NUM_ACTIONS):
-            # Apply Bellman equation to calculate v.
-            action_values[action] = calculate_v_values(V_old, action, state)
+          # Iterate through all actions of state.     
+          for action in range(env.NUM_ACTIONS):
+              # Apply Bellman equation to calculate v.
+              action_values[action] = calculate_v_values(V_old, action, state)
         
-        # Pick the best action in this state (minimal costs).
-        best_action_value = min(action_values)        
+          # Pick the best action in this state (minimal costs).
+          best_action_value = min(action_values)        
   
-        # Get biggest difference between best action value and our old value function.
-        delta[iteration] = max(delta[iteration], abs(best_action_value - V_old[state]))
+          # Get biggest difference between best action value and our old value function.
+          delta[iteration] = max(delta[iteration], abs(best_action_value - V_old[state]))
   
-        # Apply Bellman optimality principle.
-        V_new[state] = best_action_value
+          # Apply Bellman optimality principle.
+          V_new[state] = best_action_value
   
-        # Update the policy.
-        best_action = np.argmin(action_values)
-        policy[state] = np.eye(env.NUM_ACTIONS)[best_action]
+          # Update the policy.
+          best_action = np.argmin(action_values)
+          policy[state] = np.eye(env.NUM_ACTIONS)[best_action]
   
-    # Check for convergence.
-    if delta[iteration] < epsilon:
-        break
+      # Check for convergence.
+      if delta[iteration] < epsilon:
+          break
     ```
   
 ## Learning Process
@@ -99,7 +104,20 @@ The policy, value function and delta need to be initialized with 0, before start
 
 ### Delta convergence
 
+
+
 ### Problems regarding standard parameters
+Certain problems, in the search for _pi*_, can arise with the standard parameter settings. The car can get stuck in its starting position/state, if it is too far away away from the goal. The car "interprets" this distance as too risky/costly compared to simply driving into the nearest wall.
+
+Another issue is the reward gained by driving into the gas station. While the car can't indefinitely stay in the station and pump gas / gain the reward, it will tries to circle around and enter it again and again.   
+![Marked problems in policy and value func.](https://hendrikpfaff.de/img/valueiteration/result_std_marked.png)
+
+Three possible modifications to the environment can be made to solve this issue:
+* **Modification of costs in _s0_**: Further reduction of the costs (_<= -24_ in this case) when reaching the terminal state, results in a bigger incentive for steering towards it.
+ 
+* **Modification of probability function**: Increasing the probability of actually executing the intended action (up to near determinism, _p ~ 0.98_), makes it safer for the car to reach its goal. 
+
+* **Modification of collision costs**: By increasing the wall collision costs (_>= 3_), the car will be more likely to get out of corners.    
 
 ## References
 This project was given and evaluated by [Prof. Dr. Thomas Gabel](https://www.tgabel.de/) at [Frankfurt University of Applied Sciences](https://www.frankfurt-university.de/)
