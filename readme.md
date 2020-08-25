@@ -48,7 +48,7 @@ The implementation consists of three parts. The `main.py`, the `environment.py` 
 
 * The `environment.py` contains the `Environment`-class, that controls all environmental parameters and behaviors. In its constructor, the `map`-file is loaded and parsed into a usable gridworld. In the class constants, all relevant costs, probabilities and actions are defines.
 
-* In the `main.py`, the actual value iteration takes place. It is based on [Mohammad Elsersys Value Iteration code](https://gist.github.com/Neo-47/b8f6af451211d43ceaf950cfea1ded96) modified for our scenario. 
+* In the `main.py`, the actual value iteration takes place. It is based on [Mohammad Elsersys Value Iteration code](https://gist.github.com/Neo-47/b8f6af451211d43ceaf950cfea1ded96), modified for our scenario. Every state includes the value of its next optimal state (see [Bellmann Principle](https://en.wikipedia.org/wiki/Bellman_equation)). They are updated in every iteration until the differences in values are smaller than a defined epsilon. 
     ```python
     while true:
       V_old = V_new
@@ -86,10 +86,12 @@ The implementation consists of three parts. The `main.py`, the `environment.py` 
       if delta[iteration] < epsilon:
           break
     ```
+
+    To save the values of all iterations (for statistical reason), the method `write_to_csv()` can be used to create data files. 
   
 ## Learning Process
 
-Now that we understand the implemented files, we can start running our value iteration algorithm to find our optimal route.
+Now that we understand the implemented files, we can start running our value iteration algorithm to find our optimal policy and values. The process begins with an initialization and proceeds updating in a while loop until no significant changes in the policy are made.   
 
 ### Initializing
 
@@ -104,15 +106,23 @@ The policy, value function and delta need to be initialized with 0, before start
 
 ### Delta convergence
 
+Starting at the terminal state, every state value gets calculated until a convergence is reached.
+![Iteration 1](https://hendrikpfaff.de/img/valueiteration/lernverlauf24_01.png)
+
+![Iteration 6](https://hendrikpfaff.de/img/valueiteration/lernverlauf24_06.png)
+
+![Iteration 12](https://hendrikpfaff.de/img/valueiteration/lernverlauf24_finished.png)
+
+
 
 
 ### Problems regarding standard parameters
-Certain problems, in the search for _pi*_, can arise with the standard parameter settings. The car can get stuck in its starting position/state, if it is too far away away from the goal. The car "interprets" this distance as too risky/costly compared to simply driving into the nearest wall.
+In the search for _pi*_, certain problems can arise with the standard parameter settings. The car can get stuck in its starting position/state, if it is too far away away from the goal. The car "interprets" this distance as too risky/costly compared to simply driving into the nearest wall.
 
 Another issue is the reward gained by driving into the gas station. While the car can't indefinitely stay in the station and pump gas / gain the reward, it will tries to circle around and enter it again and again.   
 ![Marked problems in policy and value func.](https://hendrikpfaff.de/img/valueiteration/result_std_marked.png)
 
-Three possible modifications to the environment can be made to solve this issue:
+Three possible modifications to the environment can be made to solve these issues:
 * **Modification of costs in _s0_**: Further reduction of the costs (_<= -24_ in this case) when reaching the terminal state, results in a bigger incentive for steering towards it.
  
 * **Modification of probability function**: Increasing the probability of actually executing the intended action (up to near determinism, _p ~ 0.98_), makes it safer for the car to reach its goal. 
